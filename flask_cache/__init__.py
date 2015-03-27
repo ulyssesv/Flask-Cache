@@ -167,17 +167,11 @@ class Cache(object):
         self._set_cache(app, config)
 
     def fallback(self):
-        # f = open('/tmp/fl.log','w+')
-        # f.write('fallback   ')
         logger.exception("going to fallback")
         if self.fallback_config is not None:
             logger.exception("setting a fallback cache")
             self.init_app(self.app,config=self.fallback_config)
-            # f.write(' True\n')
-            # f.close()
             return True
-        # f.write(' False\n')
-        # f.close()
         return False
 
 
