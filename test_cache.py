@@ -678,6 +678,11 @@ class CacheTestCase(unittest.TestCase):
 
             assert big_foo(5, 2) == new_result
 
+    def test_23_init_app_sets_app_attribute(self):
+        cache = Cache()
+        cache.init_app(self.app)
+        assert cache.app == self.app
+
 if 'TRAVIS' in os.environ:
     try:
         import redis
