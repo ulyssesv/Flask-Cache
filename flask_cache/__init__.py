@@ -108,10 +108,16 @@ class Cache(object):
     """
     This class is used to control the cache objects.
     """
+    fallback_config = None
 
-    def __init__(self, app=None, with_jinja2_ext=True, config=None):
+    def __init__(self, app=None, with_jinja2_ext=True, config=None, fallback_config=None):
+
         if not (config is None or isinstance(config, dict)):
             raise ValueError("`config` must be an instance of dict or None")
+
+        if not (fallback_config is None or isinstance(fallback_config, dict)):
+            raise ValueError("`config` must be an instance of dict or None")
+        self.fallback_config = fallback_config
 
         self.with_jinja2_ext = with_jinja2_ext
         self.config = config
@@ -160,6 +166,15 @@ class Cache(object):
 
         self._set_cache(app, config)
 
+    def fallback(self):
+        logger.exception("going to fallback")
+        if self.fallback_config is not None:
+            logger.exception("setting a fallback cache")
+            self.init_app(self.app,config=self.fallback_config)
+            return True
+        return False
+
+
     def _set_cache(self, app, config):
         import_me = config['CACHE_TYPE']
         if '.' not in import_me:
@@ -185,6 +200,8 @@ class Cache(object):
         app.extensions.setdefault('cache', {})
         app.extensions['cache'][self] = cache_obj(
                 app, config, cache_args, cache_options)
+
+
 
     @property
     def cache(self):
@@ -296,6 +313,8 @@ class Cache(object):
                     else:
                         rv = self.cache.get(cache_key)
                 except Exception:
+                    if self.fallback():
+                            return f(*args, **kwargs)
                     if current_app.debug:
                         raise
                     logger.exception("Exception possibly due to cache backend.")
@@ -307,11 +326,14 @@ class Cache(object):
                         self.cache.set(cache_key, rv,
                                    timeout=decorated_function.cache_timeout)
                     except Exception:
+                        if self.fallback():
+                            return f(*args, **kwargs)
                         if current_app.debug:
                             raise
                         logger.exception("Exception possibly due to cache backend.")
                         return f(*args, **kwargs)
                 return rv
+
 
             def make_cache_key(*args, **kwargs):
                 if callable(key_prefix):
@@ -546,9 +568,12 @@ class Cache(object):
                     else:
                         rv = self.cache.get(cache_key)
                 except Exception:
+                    if self.fallback():
+                        return f(*args, **kwargs)
                     if current_app.debug:
                         raise
                     logger.exception("Exception possibly due to cache backend.")
+
                     return f(*args, **kwargs)
 
                 if rv is None:
@@ -557,9 +582,12 @@ class Cache(object):
                         self.cache.set(cache_key, rv,
                                    timeout=decorated_function.cache_timeout)
                     except Exception:
+                        if self.fallback():
+                            return f(*args, **kwargs)
                         if current_app.debug:
                             raise
                         logger.exception("Exception possibly due to cache backend.")
+
                 return rv
 
             decorated_function.uncached = f
