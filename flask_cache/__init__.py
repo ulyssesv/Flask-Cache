@@ -331,7 +331,6 @@ class Cache(object):
                         if current_app.debug:
                             raise
                         logger.exception("Exception possibly due to cache backend.")
-                        return f(*args, **kwargs)
                 return rv
 
 
