@@ -1,10 +1,8 @@
-Flask-Cache
+### Flask-Cache
 
-Added fallback cache.
-If the first configured cache fails (e.g., redis server becomes unreachable) the fallback configured cache is used (e.g., filesystem)
+Adds easy cache support to Flask.
 
-In order to configure the fallback cache a new dictionary can be used:
+This version is forked from thadeusb' version, and has had a bunch of pull requests merged in.
 
-```python
-cache = Cache(app, config={'CACHE_TYPE': 'redis','CACHE_DEFAULT_TIMEOUT': 600}, fallback_config={'CACHE_TYPE':'filesystem','CACHE_DIR':'/tmp/fc'})
-```
+
+
